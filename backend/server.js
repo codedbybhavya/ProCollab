@@ -15,6 +15,7 @@ connectDB();
 
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/test", require("./routes/testRoutes"));
 
 app.get("/", (req, res) => {
   res.send("ProCollab Backend Running");
