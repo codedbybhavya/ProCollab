@@ -13,6 +13,9 @@ app.use(express.json());
 // Connect Database
 connectDB();
 
+// Routes
+app.use("/api/auth", require("./routes/authRoutes"));
+
 app.get("/", (req, res) => {
   res.send("ProCollab Backend Running");
 });
