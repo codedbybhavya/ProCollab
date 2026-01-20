@@ -18,6 +18,7 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/test", require("./routes/testRoutes"));
 app.use("/api/projects", require("./routes/projectRoutes"));
 app.use("/api/applications", require("./routes/applicationRoutes"));
+app.use("/api/chats", require("./routes/chatRoutes"));
 
 app.get("/", (req, res) => {
   res.send("ProCollab Backend Running");
