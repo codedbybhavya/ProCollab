@@ -101,4 +101,15 @@ const getProjects = async (req, res) => {
   }
 };
 
-module.exports = { createProject, getProjects };
+const getProjectById = async (req, res) => {
+  const project = await Project.findById(req.params.id)
+    .populate("ownerId", "name email skills");
+
+  if (!project) {
+    return res.status(404).json({ message: "Project not found" });
+  }
+
+  res.json({ success: true, project });
+};
+
+module.exports = { createProject, getProjects, getProjectById };
