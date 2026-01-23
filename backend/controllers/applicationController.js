@@ -1,5 +1,6 @@
 const Application = require("../models/Application");
 const Project = require("../models/Project");
+const Chat = require("../models/Chat");
 
 // @desc    Apply to a project
 // @route   POST /api/applications
@@ -106,12 +107,49 @@ const updateApplicationStatus = async (req, res) => {
             });
         }
 
+        // 1️⃣ Update status
         application.status = status;
         await application.save();
 
+        // 2️⃣ ONLY IF ACCEPTED → HANDLE GROUP CHAT
+        if (status === "accepted") {
+            const project = await Project.findById(application.projectId);
+
+            let groupChat = await Chat.findOne({
+                projectId: project._id,
+                isGroupChat: true,
+            });
+
+            if (!groupChat) {
+                // Create new group chat
+                groupChat = await Chat.create({
+                    chatName: project.title,
+                    isGroupChat: true,
+                    users: [project.ownerId, application.applicantId],
+                    projectId: project._id,
+                    groupAdmin: project.ownerId,
+                });
+            } else {
+                // Add user if not already present
+                const isUserInChat = groupChat.users.some(
+                    (user) => user.toString() === application.applicantId.toString()
+                );
+
+                if (!isUserInChat) {
+                    groupChat.users.push(application.applicantId);
+                    await groupChat.save();
+                }
+            }
+        }
+
+        // 3️⃣ Response
         res.status(200).json({
             success: true,
             application,
+            message:
+                status === "accepted"
+                    ? "Application accepted and added to project chat"
+                    : "Application rejected",
         });
     } catch (error) {
         res.status(500).json({

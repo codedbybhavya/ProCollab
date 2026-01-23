@@ -44,4 +44,23 @@ const accessChat = async (req, res) => {
   res.status(201).json(fullChat);
 };
 
-module.exports = { accessChat };
+// @desc    Fetch all chats of logged-in user
+// @route   GET /api/chats
+// @access  Private
+const fetchChats = async (req, res) => {
+  try {
+    const chats = await Chat.find({
+      users: { $elemMatch: { $eq: req.user.id } },
+    })
+      .populate("users", "name email")
+      .populate("groupAdmin", "name email")
+      .populate("latestMessage")
+      .sort({ updatedAt: -1 });
+
+    res.json(chats);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch chats" });
+  }
+};
+
+module.exports = { accessChat, fetchChats };
