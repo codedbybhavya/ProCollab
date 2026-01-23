@@ -1,6 +1,8 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const http = require("http");
+const { Server } = require("socket.io");
 const connectDB = require("./config/db");
 
 dotenv.config();
@@ -25,7 +27,38 @@ app.get("/", (req, res) => {
   res.send("ProCollab Backend Running");
 });
 
+// 🔹 Create HTTP server
+const server = http.createServer(app);
+
+// 🔹 Attach Socket.IO
+const io = new Server(server, {
+  cors: {
+    origin: "*", // later replace with frontend URL
+  },
+});
+
+// 🔹 Socket.IO logic
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+
+  socket.on("joinChat", (chatId) => {
+    socket.join(chatId);
+    console.log(`User joined chat: ${chatId}`);
+  });
+
+  socket.on("newMessage", (message) => {
+    const chatId = message.chat._id;
+    socket.to(chatId).emit("messageReceived", message);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
+
+// 🔹 Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
